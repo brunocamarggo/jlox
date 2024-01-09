@@ -1,4 +1,4 @@
-package brunocamarggo;
+package brunocamarggo.lox;
 
 public enum TokenType {
 

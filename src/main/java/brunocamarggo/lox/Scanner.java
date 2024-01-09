@@ -1,11 +1,11 @@
-package brunocamarggo;
+package brunocamarggo.lox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static brunocamarggo.TokenType.*;
+import static brunocamarggo.lox.TokenType.*;
 import static java.lang.Character.isAlphabetic;
 import static java.lang.Character.isDigit;
 

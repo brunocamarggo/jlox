@@ -1,4 +1,4 @@
-package brunocamarggo;
+package brunocamarggo.lox;
 
 public class Token {
 
