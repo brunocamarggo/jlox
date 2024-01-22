@@ -1,9 +1,27 @@
 package brunocamarggo.lox;
 
+import java.util.List;
+
 public class AstPrinter implements Expr.Visitor<String> {
 
     String print(Expr expr) {
         return expr.accept(this);
+    }
+
+//    List<String> print(List<Stmt> statements) {
+//        return statements
+//                .stream()
+//                .map(statement -> {
+//                    var expr = statement.getExpression();
+//                    return expr.accept(this);
+//                })
+//                .toList();
+//    }
+
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr) {
+        return null;
     }
 
     @Override
@@ -26,6 +44,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     @Override
     public String visitUnaryExpr(Expr.Unary expr) {
         return parenthesize(expr.operator.lexeme, expr.right);
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        return null;
     }
 
     private String parenthesize(String name, Expr... exprs) {
