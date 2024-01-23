@@ -79,23 +79,17 @@ public class Interpreter implements Expr.Visitor<Object>,
                 return (double) left * (double) right;
             }
             case PLUS -> {
-                if (left instanceof Double leftAsDouble && right instanceof Double rightAsDouble) {
-                    return leftAsDouble + rightAsDouble;
+                if (left instanceof String || right instanceof String) {
+                    return stringify(left) + stringify(right);
                 }
 
-                if (left instanceof String leftAsString && right instanceof String rightAsString) {
-                    return leftAsString + rightAsString;
+                if (left instanceof Double && right instanceof Double) {
+                    return (double)left + (double)right;
                 }
 
-                if(left instanceof String leftAsString && right instanceof Double rightAsDouble) {
-                    return leftAsString + stringify(rightAsDouble);
-                }
+                throw new RuntimeError(expr.operator,
+                        "Operands must be two numbers or two strings.");
 
-                if(left instanceof Double leftAsDouble && right instanceof String rightAsString) {
-                    return stringify(leftAsDouble) + rightAsString;
-                }
-
-                throw new RuntimeError(expr.operator, "Operans must be two numbers or two strings.");
             }
         }
 
@@ -153,8 +147,26 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else {
+            if (stmt.elseBranch != null) {
+                execute(stmt.elseBranch);
+            }
+        }
         return null;
     }
 
@@ -178,5 +190,15 @@ public class Interpreter implements Expr.Visitor<Object>,
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         return environment.get(expr.name);
+    }
+
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        var previous = this.environment;
+        try {
+            this.environment = environment;
+            statements.forEach(this::execute);
+        } finally {
+            this.environment = previous;
+        }
     }
 }
