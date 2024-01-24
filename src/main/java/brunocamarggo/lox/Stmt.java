@@ -7,7 +7,9 @@ abstract class Stmt {
   interface Visitor<R> {
     R visitBlockStmt(Block stmt);
     R visitBreakStmt(Break stmt);
+    R visitContinueStmt(Continue stmt);
     R visitExpressionStmt(Expression stmt);
+    R visitForStmt(For stmt);
     R visitIfStmt(If stmt);
     R visitPrintStmt(Print stmt);
     R visitVarStmt(Var stmt);
@@ -38,6 +40,17 @@ abstract class Stmt {
 
   }
 
+  public static class Continue extends Stmt {
+    Continue() {
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitContinueStmt(this);
+    }
+
+  }
+
   public static class Expression extends Stmt {
     Expression(Expr expression) {
       this.expression = expression;
@@ -49,6 +62,25 @@ abstract class Stmt {
     }
 
     final Expr expression;
+  }
+
+  public static class For extends Stmt {
+    For(Stmt initializer, Expr condition, Expr increment, Stmt body) {
+      this.initializer = initializer;
+      this.condition = condition;
+      this.increment = increment;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitForStmt(this);
+    }
+
+    final Stmt initializer;
+    final Expr condition;
+    final Expr increment;
+    final Stmt body;
   }
 
   public static class If extends Stmt {

@@ -46,6 +46,7 @@ public class Parser {
 
     private Stmt statement() {
         if (match(BREAK)) return breakStatement();
+        if (match(CONTINUE)) return continueStatement();
         if (match(FOR)) return  forStatement();
         if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
@@ -54,6 +55,14 @@ public class Parser {
 
 
         return expressionStatement();
+    }
+
+    private Stmt continueStatement() {
+        if (loopDepth == 0) {
+            error(previous(), "Must be inside a loop to use 'continue'.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'continue'.");
+        return new Stmt.Continue();
     }
 
     private Stmt breakStatement() {
@@ -88,21 +97,9 @@ public class Parser {
                 increment = expression();
             }
             consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-
             var body = statement();
-
-            if (increment != null) {
-                body = new Stmt.Block(List.of(body, new Stmt.Expression(increment)));
-            }
-
             if (condition == null) condition = new Expr.Literal(true);
-            body = new Stmt.While(condition, body);
-
-            if (initializer != null) {
-                body = new Stmt.Block(List.of(initializer, body));
-            }
-
-            return body;
+            return new Stmt.For(initializer, condition, increment, body);
         } finally {
           loopDepth--;
         }
@@ -110,11 +107,11 @@ public class Parser {
     }
 
     private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expect '(' after while.");
+        var condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after a while condition.");
         try {
             loopDepth++;
-            consume(LEFT_PAREN, "Expect '(' after while.");
-            var condition = expression();
-            consume(RIGHT_PAREN, "Expect ')' after a while condition.");
             var body = statement();
             return new Stmt.While(condition, body);
         } finally {

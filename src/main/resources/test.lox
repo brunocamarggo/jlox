@@ -1,9 +1,25 @@
 var a = 0;
-var temp;
+print "For: ";
+for (var a =0; a < 10; a = a + 1) {
+    if(a == 3) {
+        continue;
+    }
+    if (a == 10) {
+        break;
+    }
+    print a;
+    a = a + 1;
+}
+var a = 0;
+print "while: ";
+while(true) {
 
-for (var a = 0; a < 10000; a = a + 1) {
-  print a;
-  if (a == 5) {
-    break;
-  }
+    a = a + 1;
+    if(a == 5) {
+        continue;
+    }
+    if (a == 10) {
+        break;
+    }
+    print a;
 }

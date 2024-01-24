@@ -6,6 +6,7 @@ public class Interpreter implements Expr.Visitor<Object>,
                                     Stmt.Visitor<Void> {
 
     private static class BreakException extends RuntimeException {}
+    private static class ContinueException extends RuntimeException {}
 
     private Environment environment = new Environment();
 
@@ -173,8 +174,30 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     @Override
+    public Void visitContinueStmt(Stmt.Continue stmt) {
+        throw new ContinueException();
+    }
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitForStmt(Stmt.For stmt) {
+        if (stmt.initializer != null) execute(stmt.initializer);
+
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
+                execute(stmt.body);
+                if (stmt.increment != null) evaluate(stmt.increment);
+            }  catch (BreakException breakException) {
+                break;
+            } catch (ContinueException continueException) {
+                if (stmt.increment != null) evaluate(stmt.increment);
+            }
+        }
         return null;
     }
 
@@ -209,12 +232,14 @@ public class Interpreter implements Expr.Visitor<Object>,
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        try {
-            while (isTruthy(evaluate(stmt.condition))) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
                 execute(stmt.body);
-            }
-        } catch (BreakException breakException) {
+            } catch (ContinueException continueException) {
 
+            } catch (BreakException breakException) {
+                break;
+            }
         }
         return null;
     }
