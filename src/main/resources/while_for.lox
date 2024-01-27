@@ -1,0 +1,25 @@
+var a = 0;
+print "For: ";
+for (var a =0; a < 10; a = a + 1) {
+    if(a == 3) {
+        continue;
+    }
+    if (a == 10) {
+        break;
+    }
+    print a;
+    a = a + 1;
+}
+var a = 0;
+print "while: ";
+while(true) {
+
+    a = a + 1;
+    if(a == 5) {
+        continue;
+    }
+    if (a == 10) {
+        break;
+    }
+    print a;
+}

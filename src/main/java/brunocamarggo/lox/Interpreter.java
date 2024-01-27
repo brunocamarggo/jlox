@@ -8,8 +8,27 @@ public class Interpreter implements Expr.Visitor<Object>,
     private static class BreakException extends RuntimeException {}
     private static class ContinueException extends RuntimeException {}
 
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+    private Environment environment = globals;
 
+    Interpreter() {
+        globals.define("block", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return  (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
     void interpret(List<Stmt> statements) {
         try {
             statements.forEach(this::execute);
@@ -97,6 +116,26 @@ public class Interpreter implements Expr.Visitor<Object>,
         }
 
         return null;
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        var callee = evaluate(expr.callue);
+        var arguments = expr.arguments
+                .stream()
+                .map(this::evaluate)
+                .toList();
+        if (!(callee instanceof LoxCallable function)) {
+            throw new RuntimeError(expr.paren,
+                    "Can only call functions and classes.");
+        }
+
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected " +
+                    function.arity() + " arguments but got " +
+                    arguments.size() + ".");
+        }
+        return function.call(this, arguments);
     }
 
     private void checkNumberOperands(Token operator, Object left, Object right) {
@@ -202,6 +241,13 @@ public class Interpreter implements Expr.Visitor<Object>,
     }
 
     @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        var function = new LoxFunction(stmt, environment);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
     public Void visitIfStmt(Stmt.If stmt) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch);
@@ -218,6 +264,14 @@ public class Interpreter implements Expr.Visitor<Object>,
         var value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) value = evaluate(stmt.value);
+
+        throw new Return(value);
     }
 
     @Override
@@ -249,7 +303,7 @@ public class Interpreter implements Expr.Visitor<Object>,
         return environment.get(expr.name);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    public void executeBlock(List<Stmt> statements, Environment environment) {
         var previous = this.environment;
         try {
             this.environment = environment;

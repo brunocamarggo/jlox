@@ -1,25 +1,13 @@
-var a = 0;
-print "For: ";
-for (var a =0; a < 10; a = a + 1) {
-    if(a == 3) {
-        continue;
-    }
-    if (a == 10) {
-        break;
-    }
-    print a;
-    a = a + 1;
-}
-var a = 0;
-print "while: ";
-while(true) {
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
 
-    a = a + 1;
-    if(a == 5) {
-        continue;
-    }
-    if (a == 10) {
-        break;
-    }
-    print a;
+  return count;
 }
+
+var counter = makeCounter();
+counter(); // "1".
+counter(); // "2".
